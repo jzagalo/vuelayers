@@ -16,6 +16,33 @@ import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import 'ol/ol.css';
 
+const data =    {
+       "type": "Feature",
+       "geometry": {
+           "type": "Polygon",
+           "coordinates": [
+               [
+                    [
+            -27.0703125,
+            43.58039085560784
+          ],
+          [
+            -28.125,
+            23.563987128451217
+          ],
+          [
+            -10.8984375,
+            32.84267363195431
+          ],
+          [
+            -27.0703125,
+            43.58039085560784
+          ]
+               ]
+           ]
+       }
+       //...
+   };
 
 
 @Component
@@ -25,6 +52,18 @@ export default class MapContainer extends Vue {
     };
 
     mounted() {
+        const feature = new GeoJSON().readFeature(data, {
+            featureProjection: 'EPSG:3857'
+        });
+
+        const vectorLayer = new VectorLayer({
+            source: new VectorSource({
+                features: [feature]
+            }),
+        });
+
+
+
       // this is where we create the OpenLayers map
       new Map({
         // the map will be created using the 'map-root' ref
@@ -34,6 +73,7 @@ export default class MapContainer extends Vue {
           new TileLayer({
             source: new OSM() // tiles are served by OpenStreetMap
           }),
+          vectorLayer,
         ],
 
         // the map view will initially show the whole world
