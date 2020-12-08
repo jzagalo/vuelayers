@@ -1,34 +1,69 @@
 <template>
     <div id="app">
-    <div class="cell cell-map">
-       <MapContainer />
-    </div>
-    <div class="cell cell-edit">
-      Edit
-    </div>
-    <div class="cell cell-inspect">
-      Inspect
-    </div>
+        <div class="cell cell-map">
+        <MapContainer :geojson="geojson" />
+        </div>
+        <div class="cell cell-edit">
+        <Edit :geojson="geojson" @change="geojson=$event" />
+        </div>
+        <div class="cell cell-inspect">
+        <Inspect :feature="selected" />
+        </div>
   </div>
 </template>
 
 <script lang="ts">
 import {
     Component,
-    Vue
+    Vue,
+    Prop,
 } from 'vue-property-decorator';
 import HelloWorld from './components/HelloWorld.vue';
 import MapContainer from './components/MapContainer.vue';
 import Edit from './components/Edit.vue';
+import Inspect from './components/Inspect.vue';
 
 @Component({
     components: {
         HelloWorld,
         MapContainer,
         Edit,
+        Inspect
     },
 })
 export default class App extends Vue {
+
+    selected: any = undefined;
+    geojson = {
+        type: 'Feature',
+        properties: {
+            "name": "a fascinating triangle",
+            "quality": "top"
+        },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [
+                -27.0703125,
+                43.58039085560784
+              ],
+              [
+                -28.125,
+                23.563987128451217
+              ],
+              [
+                -10.8984375,
+                32.84267363195431
+              ],
+              [
+                -27.0703125,
+                43.58039085560784
+              ]
+            ]
+          ]
+        }
+    };
 
 }
 </script>

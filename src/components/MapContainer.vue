@@ -6,6 +6,8 @@
 import {
     Vue,
     Component,
+    Prop,
+Constructor,
 } from 'vue-property-decorator';
 import View from 'ol/View';
 import Map from 'ol/Map';
@@ -47,6 +49,10 @@ const data =    {
 
 @Component
 export default class MapContainer extends Vue {
+    @Prop() geojson!: Record<string, any>;
+    private olMap!: Map;
+    private vectorLayer!: VectorLayer;
+
     $refs!: {
       root: HTMLDivElement;
     };
@@ -56,16 +62,16 @@ export default class MapContainer extends Vue {
             featureProjection: 'EPSG:3857'
         });
 
-        const vectorLayer = new VectorLayer({
+        this.vectorLayer = new VectorLayer({
             source: new VectorSource({
-                features: [feature]
+                features: []
             }),
         });
 
 
 
       // this is where we create the OpenLayers map
-      new Map({
+      this.olMap = new Map({
         // the map will be created using the 'map-root' ref
         target: this.$refs['root'],
         layers: [
@@ -73,7 +79,7 @@ export default class MapContainer extends Vue {
           new TileLayer({
             source: new OSM() // tiles are served by OpenStreetMap
           }),
-          vectorLayer,
+          this.vectorLayer,
         ],
 
         // the map view will initially show the whole world
@@ -84,6 +90,33 @@ export default class MapContainer extends Vue {
         }),
 
       });
+
+      this.olMap.on('pointermove', (event) => {
+        const hovered = this.olMap.forEachFeatureAtPixel(
+          event.pixel,
+          (feature) => feature
+        );
+
+        this.$emit('select', hovered);
+      });
+
+      this.updateSource(this.geojson);
+
+    }
+
+    updateSource(geojson: any){
+      const view = this.olMap.getView();
+      const source = this.vectorLayer.getSource();
+
+      const features = new GeoJSON({
+        featureProjection: 'EPSG:3857'
+      }).readFeature(geojson);
+
+     // source.clear();
+      source.addFeature(features);
+
+      // this zooms the view on the created object
+      view.fit(source.getExtent());
     }
 
 }
