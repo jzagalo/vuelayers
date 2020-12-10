@@ -1,15 +1,14 @@
 <template>
     <div id="app">
         <div class="cell cell-map">
-        <MapContainer :geojson="geojson" />
+            <MapContainer :geojson="geojson" />
         </div>
         <div class="cell cell-edit">
-        <Edit :geojson="geojson" @change="geojson=$event" />
+            <Edit  />
         </div>
         <div class="cell cell-inspect">
-        <Inspect :feature="selected" />
-        </div>
-  </div>
+            <Inspect :feature="selected" />
+        </div>  </div>
 </template>
 
 <script lang="ts">
@@ -105,6 +104,5 @@ html, body {
     grid-column: 2;
     grid-row: 2;
 }
-
 
 </style>

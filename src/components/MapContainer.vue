@@ -12,11 +12,13 @@ Constructor,
 import View from 'ol/View';
 import Map from 'ol/Map';
 import TileLayer from 'ol/layer/Tile';
+import Group from 'ol/layer/Group';
 import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import 'ol/ol.css';
+import Collection from 'ol/Collection';
 
 const data =    {
        "type": "Feature",
@@ -58,65 +60,59 @@ export default class MapContainer extends Vue {
     };
 
     mounted() {
-        const feature = new GeoJSON().readFeature(data, {
-            featureProjection: 'EPSG:3857'
-        });
-
-        this.vectorLayer = new VectorLayer({
-            source: new VectorSource({
-                features: []
-            }),
-        });
-
-
-
-      // this is where we create the OpenLayers map
-      this.olMap = new Map({
-        // the map will be created using the 'map-root' ref
-        target: this.$refs['root'],
-        layers: [
-          // adding a background tiled layer
-          new TileLayer({
-            source: new OSM() // tiles are served by OpenStreetMap
-          }),
-          this.vectorLayer,
-        ],
-
-        // the map view will initially show the whole world
+      const map = new Map({
         view: new View({
-          zoom: 0,
-          center: [0, 0],
-          constrainResolution: true
+          center: [-313086.06785608083, 2269873.9919565953],
+          zoom: 4,
+          maxZoom: 10,
+          minZoom: 4
         }),
-
+        target: this.$refs['root'],
       });
 
-      this.olMap.on('pointermove', (event) => {
-        const hovered = this.olMap.forEachFeatureAtPixel(
-          event.pixel,
-          (feature) => feature
-        );
-
-        this.$emit('select', hovered);
+      const OSMStandard = new TileLayer({
+        source: new OSM(),
+        visible: false,
       });
 
-      this.updateSource(this.geojson);
+      const OSMHumanitarian = new TileLayer({
+        source: new OSM({
+          url: 'http://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+        }),
+        visible: false,
+      });
 
-    }
+      const stamenTerrain = new TileLayer({
+        source: new OSM({
+          url: 'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg',
+          attributions: 'Map titles by <a href="http://stamen.com">Stamen</a> '
+        }),
+        visible: false,
+      });
 
-    updateSource(geojson: any){
-      const view = this.olMap.getView();
-      const source = this.vectorLayer.getSource();
+      const layerObject: Record<string, TileLayer> = {
+        'OSMStandard': OSMStandard,
+        'OSMHumanitarian': OSMHumanitarian,
+        'stamenTerrain': stamenTerrain
+      };
 
-      const features = new GeoJSON({
-        featureProjection: 'EPSG:3857'
-      }).readFeature(geojson);
 
-     // source.clear();
-      source.addFeature(features);
+      const baseLayerGroup = new Group({
+        layers: Object.values(layerObject)
+      });
 
-      // this zooms the view on the created object
-      view.fit(source.getExtent());
+      map.setLayerGroup(baseLayerGroup);
+
+      const baseLayerElements = document.querySelectorAll("div.sidebar>input[type=radio]");
+
+      map.getLayers().forEach((layer) => {
+          baseLayerElements.forEach((inputElement) =>{
+              const elem = inputElement as HTMLInputElement;
+              if(elem.checked && layerObject[elem.value] === layer){
+                  layer.setVisible(true);
+              }
+          });
+      });
     }
 
 }
