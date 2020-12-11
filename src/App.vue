@@ -1,13 +1,13 @@
 <template>
     <div id="app">
         <div class="cell cell-map">
-            <MapContainer :geojson="geojson" />
+            <MapContainer  />
         </div>
         <div class="cell cell-edit">
             <Edit  />
         </div>
         <div class="cell cell-inspect">
-            <Inspect :feature="selected" />
+            <Inspect  />
         </div>  </div>
 </template>
 

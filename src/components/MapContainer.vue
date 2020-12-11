@@ -87,7 +87,7 @@ export default class MapContainer extends Vue {
           url: 'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg',
           attributions: 'Map titles by <a href="http://stamen.com">Stamen</a> '
         }),
-        visible: false,
+        visible: true,
       });
 
       const layerObject: Record<string, TileLayer> = {
@@ -106,11 +106,15 @@ export default class MapContainer extends Vue {
       const baseLayerElements = document.querySelectorAll("div.sidebar>input[type=radio]");
 
       map.getLayers().forEach((layer) => {
-          baseLayerElements.forEach((inputElement) =>{
+          baseLayerElements.forEach((inputElement) => {
               const elem = inputElement as HTMLInputElement;
-              if(elem.checked && layerObject[elem.value] === layer){
-                  layer.setVisible(true);
-              }
+              elem.addEventListener("change", function(){
+                 if(elem.checked && layerObject[elem.value] === layer){
+                    layer.setVisible(true);
+                 }else{
+                    layer.setVisible(false);
+                 }
+              });             
           });
       });
     }
