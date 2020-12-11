@@ -54,13 +54,17 @@ export default class MapContainer extends Vue {
     @Prop() geojson!: Record<string, any>;
     private olMap!: Map;
     private vectorLayer!: VectorLayer;
+    private zoomInBtn!: HTMLButtonElement;
+    private zoomOutBtn!: HTMLButtonElement;
 
     $refs!: {
       root: HTMLDivElement;
     };
 
     mounted() {
-      const map = new Map({
+     
+
+      this.olMap = new Map({
         view: new View({
           center: [-313086.06785608083, 2269873.9919565953],
           zoom: 4,
@@ -101,21 +105,38 @@ export default class MapContainer extends Vue {
         layers: Object.values(layerObject)
       });
 
-      map.setLayerGroup(baseLayerGroup);
-
+      this.olMap.setLayerGroup(baseLayerGroup);
       const baseLayerElements = document.querySelectorAll("div.sidebar>input[type=radio]");
 
-      map.getLayers().forEach((layer) => {
+      this.olMap.getLayers().forEach((layer) => {
           baseLayerElements.forEach((inputElement) => {
               const elem = inputElement as HTMLInputElement;
               elem.addEventListener("change", function(){
                  if(elem.checked && layerObject[elem.value] === layer){
                     layer.setVisible(true);
-                 }else{
+                 } else{
                     layer.setVisible(false);
                  }
               });             
           });
+      });
+
+      this.setZoomControls();
+    }
+
+    setZoomControls(){
+      const zoomInBtn =  document.querySelector(".zoomIn");
+      const zoomOutBtn =  document.querySelector(".zoomOut");
+      const mapView = this.olMap.getView();
+
+      zoomInBtn?.addEventListener("click", (event) => {
+          const zoom = Number(mapView.getZoom());         
+          mapView.setZoom(zoom - 1);
+      });
+
+      zoomOutBtn?.addEventListener("click", (event) => {
+          const zoom = Number(mapView.getZoom());
+          mapView.setZoom(zoom + 1);
       });
     }
 

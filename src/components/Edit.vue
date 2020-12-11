@@ -4,6 +4,9 @@
         <input type="radio" name="baseLayerRadioButton" value="OSMStandard"  /> OSM Standard
         <input type="radio" name="baseLayerRadioButton" value="OSMHumanitarian"  /> OSMHumanitarian
         <input type="radio" name="baseLayerRadioButton" value="stamenTerrain" checked /> Stamen Terrain
+
+        <button class="zoomIn">Zoom In</button>    
+        <button class="zoomOut">Zoom Out</button>     
     </div>
 </template>
 
