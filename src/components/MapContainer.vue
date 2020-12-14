@@ -19,6 +19,9 @@ import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import 'ol/ol.css';
 import Collection from 'ol/Collection';
+import { transform } from "ol/proj";
+
+
 
 const data =    {
        "type": "Feature",
@@ -56,21 +59,25 @@ export default class MapContainer extends Vue {
     private vectorLayer!: VectorLayer;
     private zoomInBtn!: HTMLButtonElement;
     private zoomOutBtn!: HTMLButtonElement;
+    private londonProjection = transform([-0.12755, 51.507222], 'EPSG:4326', 'EPSG:3857');
+    private olView!: View;
+
+    private activeLayer: any;
 
     $refs!: {
       root: HTMLDivElement;
     };
 
     mounted() {
-     
-
-      this.olMap = new Map({
-        view: new View({
+      this.olView =  new View({
           center: [-313086.06785608083, 2269873.9919565953],
           zoom: 4,
           maxZoom: 10,
           minZoom: 4
-        }),
+      });
+
+      this.olMap = new Map({
+        view:this.olView,
         target: this.$refs['root'],
       });
 
@@ -107,13 +114,14 @@ export default class MapContainer extends Vue {
 
       this.olMap.setLayerGroup(baseLayerGroup);
       const baseLayerElements = document.querySelectorAll("div.sidebar>input[type=radio]");
-
+      const that = this;
       this.olMap.getLayers().forEach((layer) => {
           baseLayerElements.forEach((inputElement) => {
               const elem = inputElement as HTMLInputElement;
               elem.addEventListener("change", function(){
                  if(elem.checked && layerObject[elem.value] === layer){
                     layer.setVisible(true);
+                    that.activeLayer = layer;
                  } else{
                     layer.setVisible(false);
                  }
@@ -122,6 +130,7 @@ export default class MapContainer extends Vue {
       });
 
       this.setZoomControls();
+      this.setPanToLondon();
     }
 
     setZoomControls(){
@@ -138,6 +147,25 @@ export default class MapContainer extends Vue {
           const zoom = Number(mapView.getZoom());
           mapView.setZoom(zoom + 1);
       });
+    }
+
+    setPanToLondon(){
+      const panToLondon =  document.querySelector(".panToLondon");
+      panToLondon?.addEventListener("click", () => {
+        this.olView.animate({
+          center: this.olView.getCenter(),
+          duration: 1000,
+          zoom: 7
+        });
+      });
+    }
+
+    setProperty(){
+      const opacitySetter = document.querySelector(".opacity");
+      /* this.activeLayer.on("change:visible",() => {
+
+      }) */
+      
     }
 
 }
