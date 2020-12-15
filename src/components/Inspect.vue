@@ -15,10 +15,6 @@ import Feature from 'ol/Feature';
 export default class Inspect extends Vue {
     @Prop() feature!: Feature;
 
-    mounted(){
-        console.log(this.feature);
-    }
-
     props(){
         return this.feature ? this.feature.getKeys().
             filter(key => key !== this.feature.getGeometryName()) : [];

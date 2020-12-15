@@ -17,6 +17,7 @@ import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import { Vector as VectorSource} from 'ol/source';
 import GeoJSON from 'ol/format/GeoJSON';
+import Draw from 'ol/interaction/Draw'
 import 'ol/ol.css';
 import Collection from 'ol/Collection';
 import { transform } from "ol/proj";
@@ -28,6 +29,7 @@ import Feature from 'ol/Feature';
 import { Extent } from 'ol/extent';
 import { DragRotateAndZoom, defaults as defaultInteractions } from 'ol/interaction';
 import { OverviewMap, defaults as defaultControls } from 'ol/control';
+import GeometryType from 'ol/geom/GeometryType';
 
 
 
@@ -80,20 +82,24 @@ export default class MapContainer extends Vue {
 
     mounted() {
       this.olView =  new View({
-          center: [0, 0],
+          center: [-11000000, 4600000],
           zoom: 4,
           maxZoom: 10,
           minZoom: 4
       });
 
-       this.overViewMapControl = new OverviewMap({
+
+      const tileLayer =  new TileLayer({
+          source: new OSM({ 'url': 'https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=01524d483cd44b66ab2021708cf53527' })
+      });
+      const vectorLayer =   new VectorLayer({
+          source:  new VectorSource({  wrapX: false }),
+      });
+
+      this.overViewMapControl = new OverviewMap({
         className: 'ol-overviewmap ol-custom-overviewmap',
         layers: [
-            new TileLayer({
-              source: new OSM({
-                'url': 'https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=01524d483cd44b66ab2021708cf53527'
-            })
-          })
+          tileLayer, vectorLayer
         ],
         collapseLabel: '\u00BB',
         label: '\u00AB',
@@ -161,6 +167,7 @@ export default class MapContainer extends Vue {
       this.setPanToLondon();
       this.setAdvanced();
       this.mapControls();
+      this.freeHandDraw();
     }
 
     setZoomControls(){
@@ -206,15 +213,33 @@ export default class MapContainer extends Vue {
 
     mapControls(){
       const rotateWithView = document.querySelector('.rotateWithView')!;
-
-
       const overViewCopy = this.overViewMapControl;
       (rotateWithView as HTMLInputElement).addEventListener('change', function(){
         overViewCopy.setRotateWithView(this.checked);
       });
+    }
 
-      //this.olMap['controls'] = defaultControls().extend([overViewCopy]);
-      //this.olMap['interactions'] = defaultInteractions().extend([new DragRotateAndZoom()])
+    freeHandDraw(){
+      let draw!: Draw;
+      const typeSelect = document.getElementById("type")!;
+      const source = new VectorSource({wrapX: false});
+      const addInteraction = () =>{
+        const value = (typeSelect as HTMLSelectElement).value;
+        if(value !== 'None'){
+          draw = new Draw({
+            source: source,
+            type: ((typeSelect as HTMLSelectElement).value as GeometryType),
+            freehand: true
+          });
+
+          this.olMap.addInteraction(draw);
+        }
+      };
+
+      typeSelect.addEventListener("change", ()=>{
+        this.olMap.removeInteraction(draw);
+        addInteraction();
+      });
     }
 
 }
@@ -230,8 +255,6 @@ export default class MapContainer extends Vue {
 
   #root .ol-custom-overviewmap,
   #root .ol-custom-overviewmap.ol-uncollapsible {
-    bottom: auto;
-    left: auto;
     right: 0;
     top: 0;
   }

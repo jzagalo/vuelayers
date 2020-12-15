@@ -10,6 +10,15 @@
         <button class="panToLondon">PanToLondon</button>
         <button class="opacity">Opacity</button>
         <button class="az-1">AZoom to Louisanne</button>
+        <form class="form-inline">
+          <label>Geometry type &nbsp;</label>
+          <select id="type">
+            <option value="LineString">LineString</option>
+            <option value="Polygon">Polygon</option>
+            <option value="Circle">Circle</option>
+            <option value="None">None</option>
+          </select>
+       </form>
     </div>
 </template>
 
