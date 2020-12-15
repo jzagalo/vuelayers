@@ -2,6 +2,9 @@
     <div id="app">
         <div class="cell cell-map">
             <MapContainer  />
+             <div>
+                <input type="checkbox" class="rotateWithView">Rotate with view
+            </div>
         </div>
         <div class="cell cell-edit">
             <Edit  />

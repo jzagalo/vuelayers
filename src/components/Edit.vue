@@ -5,10 +5,11 @@
         <input type="radio" name="baseLayerRadioButton" value="OSMHumanitarian"  /> OSMHumanitarian
         <input type="radio" name="baseLayerRadioButton" value="stamenTerrain" checked /> Stamen Terrain
 
-        <button class="zoomIn">Zoom In</button>    
-        <button class="zoomOut">Zoom Out</button>    
-        <button class="panToLondon">PanToLondon</button>     
-        <button class="opacity">Opacity</button>   
+        <button class="zoomIn">Zoom In</button>
+        <button class="zoomOut">Zoom Out</button>
+        <button class="panToLondon">PanToLondon</button>
+        <button class="opacity">Opacity</button>
+        <button class="az-1">AZoom to Louisanne</button>
     </div>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" style="width:100%; height:100%"> </div>
+  <div ref="root" class="map" style="width:100%; height:90%">  </div>
 </template>
 
 <script lang="ts">
@@ -15,11 +15,19 @@ import TileLayer from 'ol/layer/Tile';
 import Group from 'ol/layer/Group';
 import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
+import { Vector as VectorSource} from 'ol/source';
 import GeoJSON from 'ol/format/GeoJSON';
 import 'ol/ol.css';
 import Collection from 'ol/Collection';
 import { transform } from "ol/proj";
+import { Vector } from "ol/source";
+import Polygon from 'ol/geom/Polygon';
+import Geometry from 'ol/geom/Geometry';
+import SimpleGeometry from 'ol/geom/Geometry';
+import Feature from 'ol/Feature';
+import { Extent } from 'ol/extent';
+import { DragRotateAndZoom, defaults as defaultInteractions } from 'ol/interaction';
+import { OverviewMap, defaults as defaultControls } from 'ol/control';
 
 
 
@@ -61,8 +69,10 @@ export default class MapContainer extends Vue {
     private zoomOutBtn!: HTMLButtonElement;
     private londonProjection = transform([-0.12755, 51.507222], 'EPSG:4326', 'EPSG:3857');
     private olView!: View;
+    private overViewMapControl!: OverviewMap;
 
     private activeLayer: any;
+
 
     $refs!: {
       root: HTMLDivElement;
@@ -70,15 +80,32 @@ export default class MapContainer extends Vue {
 
     mounted() {
       this.olView =  new View({
-          center: [-313086.06785608083, 2269873.9919565953],
+          center: [0, 0],
           zoom: 4,
           maxZoom: 10,
           minZoom: 4
       });
 
+       this.overViewMapControl = new OverviewMap({
+        className: 'ol-overviewmap ol-custom-overviewmap',
+        layers: [
+            new TileLayer({
+              source: new OSM({
+                'url': 'https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=01524d483cd44b66ab2021708cf53527'
+            })
+          })
+        ],
+        collapseLabel: '\u00BB',
+        label: '\u00AB',
+        collapsed: false,
+      });
+
+      const overViewCopy = this.overViewMapControl;
       this.olMap = new Map({
         view:this.olView,
         target: this.$refs['root'],
+        controls: defaultControls().extend([overViewCopy]),
+        interactions: defaultInteractions().extend([new DragRotateAndZoom()])
       });
 
       const OSMStandard = new TileLayer({
@@ -114,23 +141,26 @@ export default class MapContainer extends Vue {
 
       this.olMap.setLayerGroup(baseLayerGroup);
       const baseLayerElements = document.querySelectorAll("div.sidebar>input[type=radio]");
-      const that = this;
+      let layerCopy = this.activeLayer;
       this.olMap.getLayers().forEach((layer) => {
+
           baseLayerElements.forEach((inputElement) => {
               const elem = inputElement as HTMLInputElement;
-              elem.addEventListener("change", function(){
+              elem.addEventListener("change", () => {
                  if(elem.checked && layerObject[elem.value] === layer){
                     layer.setVisible(true);
-                    that.activeLayer = layer;
+                    layerCopy = layer;
                  } else{
                     layer.setVisible(false);
                  }
-              });             
+              });
           });
       });
 
       this.setZoomControls();
       this.setPanToLondon();
+      this.setAdvanced();
+      this.mapControls();
     }
 
     setZoomControls(){
@@ -138,12 +168,12 @@ export default class MapContainer extends Vue {
       const zoomOutBtn =  document.querySelector(".zoomOut");
       const mapView = this.olMap.getView();
 
-      zoomInBtn?.addEventListener("click", (event) => {
-          const zoom = Number(mapView.getZoom());         
+      zoomInBtn?.addEventListener("click", () => {
+          const zoom = Number(mapView.getZoom());
           mapView.setZoom(zoom - 1);
       });
 
-      zoomOutBtn?.addEventListener("click", (event) => {
+      zoomOutBtn?.addEventListener("click", () => {
           const zoom = Number(mapView.getZoom());
           mapView.setZoom(zoom + 1);
       });
@@ -160,12 +190,31 @@ export default class MapContainer extends Vue {
       });
     }
 
-    setProperty(){
-      const opacitySetter = document.querySelector(".opacity");
-      /* this.activeLayer.on("change:visible",() => {
+    setAdvanced(){
+      const source = new VectorSource({
+        url: '../data/geojson.json',
+        format: new GeoJSON()
+      });
 
-      }) */
-      
+      const avLousine = document.querySelector('.az-1');
+      avLousine?.addEventListener("click", () => {
+         const feature: any = source.getFeatures()[1];
+         const point: any = feature.getGeometry()!;
+         this.olView.fit(point, { padding: [170, 50, 30, 150] });
+      });
+    }
+
+    mapControls(){
+      const rotateWithView = document.querySelector('.rotateWithView')!;
+
+
+      const overViewCopy = this.overViewMapControl;
+      (rotateWithView as HTMLInputElement).addEventListener('change', function(){
+        overViewCopy.setRotateWithView(this.checked);
+      });
+
+      //this.olMap['controls'] = defaultControls().extend([overViewCopy]);
+      //this.olMap['interactions'] = defaultInteractions().extend([new DragRotateAndZoom()])
     }
 
 }
@@ -175,8 +224,41 @@ export default class MapContainer extends Vue {
       position: absolute;
       left:0;
       top:0;
-      bottom:0;
+      bottom:30;
       right:0;
+  }
+
+  #root .ol-custom-overviewmap,
+  #root .ol-custom-overviewmap.ol-uncollapsible {
+    bottom: auto;
+    left: auto;
+    right: 0;
+    top: 0;
+  }
+
+  #root .ol-custom-overviewmap:not(.ol-collapsed)  {
+    border: 1px solid black;
+  }
+
+  #root .ol-custom-overviewmap .ol-overviewmap-map {
+    border: none;
+    width: 300px;
+  }
+
+  #root .ol-custom-overviewmap .ol-overviewmap-box {
+    border: 2px solid red;
+  }
+
+  #root .ol-custom-overviewmap:not(.ol-collapsed) button{
+    bottom: auto;
+    left: auto;
+    right: 1px;
+    top: 1px;
+  }
+
+  #root .ol-rotate {
+    top: 170px;
+    right: 0;
   }
 </style>
 
